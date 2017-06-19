@@ -1,5 +1,6 @@
 using Matching
 using Base.Test
+using MatchingMarkets
 
 const _deferred_acceptance = test_da
 

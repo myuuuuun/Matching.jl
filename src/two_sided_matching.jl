@@ -33,7 +33,7 @@ end
 end
 
 
-@inbounds function deferred_acceptance2(market::TwoSidedMatchingMarket, reversed=false)
+function deferred_acceptance2(market::TwoSidedMatchingMarket, reversed=false)
     if reversed
         proposer_side = market.side_B
         non_proposer_side = market.side_A
@@ -56,33 +56,29 @@ end
     non_proposed = 1 # initial
     proposer = non_proposed
 
-    while true
+    while non_proposed <= proposer_side.size
         next_ranking = get_next!(proposed_counter, proposer)
 
         if next_ranking == 0
             non_proposed += 1
-            if non_proposed > proposer_side.size
-                break
-            end
             proposer = non_proposed
         
         else
-            proposing_next = proposer_side.prefs[proposer][next_ranking]
-            if rankings[proposer, proposing_next] > 0
+            @inbounds proposing_next = proposer_side.prefs[proposer][next_ranking]
+            @inbounds proposer_ranking = rankings[proposer, proposing_next]
+            if proposer_ranking > 0
                 matched = non_proposer_matched[proposing_next]
 
                 if matched == 0
-                    proposer_matched[proposer] = proposing_next
-                    non_proposer_matched[proposing_next] = proposer
+                    @inbounds proposer_matched[proposer] = proposing_next
+                    @inbounds non_proposer_matched[proposing_next] = proposer
                     non_proposed += 1
                     proposer = non_proposed
                     
-                
-                elseif rankings[proposer, proposing_next] < rankings[matched, proposing_next]
+                elseif proposer_ranking < rankings[matched, proposing_next]
                     proposer_matched[proposer] = proposing_next
                     proposer_matched[matched] = 0
-                    non_proposer_matched[proposing_next] = proposer
-                    proposer = matched
+                    non_proposer_matched[proposing_next], proposer = proposer, matched
                 end
             end
         end
@@ -100,7 +96,7 @@ function test_da(m_prefs, f_prefs)
     m_side = Preferences(m_size, m_prefs, m_caps)
     f_side = Preferences(f_size, f_prefs, f_caps)
     market = TwoSidedMatchingMarket(m_side, f_side)
-    return deferred_acceptance(market)
+    return deferred_acceptance2(market)
 end
 
 

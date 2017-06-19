@@ -58,6 +58,7 @@ end
 
     while true
         next_ranking = get_next!(proposed_counter, proposer)
+
         if next_ranking == 0
             non_proposed += 1
             if non_proposed > proposer_side.size
@@ -65,10 +66,9 @@ end
             end
             proposer = non_proposed
         
-        else  
+        else
             proposing_next = proposer_side.prefs[proposer][next_ranking]
-            proposer_ranking = rankings[proposer, proposing_next]
-            if proposer_ranking > 0
+            if rankings[proposer, proposing_next] > 0
                 matched = non_proposer_matched[proposing_next]
 
                 if matched == 0
@@ -76,8 +76,9 @@ end
                     non_proposer_matched[proposing_next] = proposer
                     non_proposed += 1
                     proposer = non_proposed
+                    
                 
-                elseif proposer_ranking < rankings[matched, proposing_next]
+                elseif rankings[proposer, proposing_next] < rankings[matched, proposing_next]
                     proposer_matched[proposer] = proposing_next
                     proposer_matched[matched] = 0
                     non_proposer_matched[proposing_next] = proposer

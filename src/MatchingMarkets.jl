@@ -1,10 +1,10 @@
 __precompile__()
 
-module MatchingMarkets
+module MyMatchingMarkets
 	import Base: pop!, push!, length, isempty
 
-    export TwoSidedMatchingMarket, Preferences, FixedSizeStack, Counter
-    export deferred_acceptance2, deferred_acceptance3, test_da, make_ranking_from_prefs, push!, pop!, top, length, isempty, get_next!, change_user!
+    export TwoSidedMatchingMarket, Agents, Counter
+    export deferred_acceptance, test_da, make_ranking_from_prefs, get_next!
 
     include("tools.jl")
     include("two_sided_matching.jl")

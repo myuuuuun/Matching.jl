@@ -2,24 +2,24 @@
 # type definition and algorithms 
 #
 # author: @myuuuuun
-# last update: 2017-06-15
+# last update: 2017-06-30
 
 
-type Preferences
+type Agents
     size::Int
-    prefs::AbstractArray
-    caps::AbstractArray
+    prefs::Vector{Vector{Int}}
+    caps::Vector{Int}
 end
 
 type TwoSidedMatchingMarket
-    side_A::Preferences
-    side_B::Preferences
+    men::Agents
+    women::Agents
 end
 
 
 @inbounds function make_ranking_from_prefs(proposer_size::Int, 
     non_proposer_size::Int, 
-    non_proposer_prefs::AbstractArray)
+    non_proposer_prefs::Vector{Vector{Int}})
     
     rankings = zeros(Int64, proposer_size, non_proposer_size)
     
@@ -33,13 +33,13 @@ end
 end
 
 
-function deferred_acceptance2(market::TwoSidedMatchingMarket, reversed=false)
+function deferred_acceptance(market::TwoSidedMatchingMarket, reversed=false)
     if reversed
-        proposer_side = market.side_B
-        non_proposer_side = market.side_A
+        proposer_side = market.women
+        non_proposer_side = market.men
     else
-        proposer_side = market.side_A
-        non_proposer_side = market.side_B
+        proposer_side = market.men
+        non_proposer_side = market.women
     end
     
     # ranking of proposers for each non-proposer
@@ -67,7 +67,7 @@ function deferred_acceptance2(market::TwoSidedMatchingMarket, reversed=false)
             @inbounds proposing_next = proposer_side.prefs[proposer][next_ranking]
             @inbounds proposer_ranking = rankings[proposer, proposing_next]
             if proposer_ranking > 0
-                matched = non_proposer_matched[proposing_next]
+                @inbounds matched = non_proposer_matched[proposing_next]
 
                 if matched == 0
                     @inbounds proposer_matched[proposer] = proposing_next
@@ -75,10 +75,13 @@ function deferred_acceptance2(market::TwoSidedMatchingMarket, reversed=false)
                     non_proposed += 1
                     proposer = non_proposed
                     
-                elseif proposer_ranking < rankings[matched, proposing_next]
-                    proposer_matched[proposer] = proposing_next
-                    proposer_matched[matched] = 0
-                    non_proposer_matched[proposing_next], proposer = proposer, matched
+                else
+                    @inbounds matched_ranking = rankings[matched, proposing_next]
+                    if proposer_ranking < matched_ranking
+                        @inbounds proposer_matched[proposer] = proposing_next
+                        @inbounds proposer_matched[matched] = 0
+                        @inbounds non_proposer_matched[proposing_next], proposer = proposer, matched
+                    end
                 end
             end
         end
